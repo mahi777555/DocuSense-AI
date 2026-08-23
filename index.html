@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Midnight Scholar | Document Summary Assistant</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --primary-dark: #0f172a; --primary-light: #1e293b; --accent: #312e81;
+    --highlight: #d4a574; --highlight-glow: rgba(212, 165, 116, 0.2);
+    --text-light: #f8fafc; --text-muted: #94a3b8;
+    --card-bg: rgba(30, 41, 59, 0.6); --card-border: rgba(148, 163, 184, 0.15);
+    --error: #f87171; --success: #34d399;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Inter', sans-serif; background-color: var(--primary-dark);
+    color: var(--text-light); min-height: 100vh; line-height: 1.6;
+    background-image: radial-gradient(circle at 10% 20%, rgba(49, 46, 129, 0.15) 0%, transparent 20%),
+                      radial-gradient(circle at 90% 80%, rgba(212, 165, 116, 0.05) 0%, transparent 20%);
+}
+h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 600; }
+.container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+header {
+    padding: 1.25rem 0; background-color: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 100;
+}
+.header-content { display: flex; justify-content: space-between; align-items: center; }
+.logo { display: flex; align-items: center; gap: 12px; text-decoration: none; cursor: pointer; }
+.logo-icon {
+    width: 36px; height: 36px; background: linear-gradient(135deg, var(--highlight), var(--accent));
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;
+}
+.logo-text { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; color: var(--text-light); letter-spacing: -0.02em; }
+.nav-links { display: flex; gap: 1.5rem; }
+.nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; cursor: pointer; }
+.nav-links a:hover, .nav-links a.active { color: var(--highlight); }
+main { padding: 4rem 0 6rem; }
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.3s ease-out; }
+.hero-section { text-align: center; margin-bottom: 3.5rem; }
+.hero-title { font-size: 2.8rem; margin-bottom: 1rem; line-height: 1.2; }
+.hero-title span { color: var(--highlight); }
+.hero-subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto; }
+.page-title { font-size: 2.2rem; margin-bottom: 0.75rem; }
+.page-subtitle { color: var(--text-muted); font-size: 1.05rem; margin-bottom: 2.5rem; max-width: 650px; }
+.upload-section {
+    background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 2rem; margin-bottom: 2.5rem; backdrop-filter: blur(8px); transition: border-color 0.3s;
+}
+.file-upload-area {
+    border: 2px dashed var(--card-border); border-radius: 12px; padding: 4rem 2rem; text-align: center;
+    cursor: pointer; position: relative; overflow: hidden; transition: all 0.3s ease-out;
+}
+.file-upload-area:hover, .file-upload-area.dragover { border-color: var(--highlight); background-color: var(--highlight-glow); }
+.upload-icon { font-size: 2.5rem; color: var(--highlight); margin-bottom: 1rem; }
+.upload-text { font-size: 1.1rem; font-weight: 500; margin-bottom: 0.5rem; }
+.upload-hint { color: var(--text-muted); font-size: 0.85rem; }
+.file-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.file-info { margin-top: 1.5rem; padding: 1rem 1.25rem; background-color: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: 10px; display: none; }
+.file-info.active { display: flex; align-items: center; gap: 1rem; }
+.file-icon { font-size: 1.8rem; color: var(--highlight); }
+.file-details { flex-grow: 1; }
+.file-name { font-weight: 600; font-size: 0.95rem; }
+.file-size { color: var(--text-muted); font-size: 0.8rem; }
+.remove-file { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; transition: color 0.2s; }
+.remove-file:hover { color: var(--error); }
+.options-section { margin-bottom: 2.5rem; }
+.section-title { font-size: 1.3rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+.section-title i { color: var(--highlight); font-size: 1.1rem; }
+.summary-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.option-card { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.5rem; cursor: pointer; transition: all 0.25s; }
+.option-card:hover { transform: translateY(-3px); border-color: rgba(148, 163, 184, 0.3); }
+.option-card.selected { border-color: var(--highlight); background-color: rgba(212, 165, 116, 0.08); box-shadow: 0 0 20px var(--highlight-glow); }
+.option-icon { font-size: 1.5rem; margin-bottom: 0.75rem; color: var(--text-muted); }
+.option-card.selected .option-icon { color: var(--highlight); }
+.option-title { font-size: 1.1rem; margin-bottom: 0.35rem; }
+.option-description { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+.generate-btn {
+    background: linear-gradient(135deg, var(--highlight), #c08a5a); color: var(--primary-dark); border: none;
+    border-radius: 10px; padding: 1rem 2rem; font-size: 1rem; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; margin-top: 2rem;
+    transition: all 0.3s; font-family: 'Inter', sans-serif;
+}
+.generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(212, 165, 116, 0.3); }
+.generate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+.loading-container, .error-container { display: none; }
+.loading-container.active { display: block; text-align: center; padding: 4rem 0; }
+.error-container.active {
+    display: flex; align-items: flex-start; gap: 1rem; background-color: rgba(248, 113, 113, 0.08);
+    border: 1px solid rgba(248, 113, 113, 0.3); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 2rem;
+}
+.loading-spinner {
+    width: 48px; height: 48px; border: 3px solid var(--card-border); border-radius: 50%;
+    border-top-color: var(--highlight); animation: spin 0.8s linear infinite; margin: 0 auto 1.5rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: var(--text-muted); font-size: 0.95rem; min-height: 1.5em; }
+.error-icon { color: var(--error); font-size: 1.3rem; margin-top: 2px; }
+.error-title { font-weight: 600; margin-bottom: 0.25rem; color: var(--error); }
+.error-details { color: var(--text-muted); font-size: 0.9rem; }
+.results-section { display: none; animation: fadeIn 0.4s ease-out; }
+.results-section.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.summary-container, .key-points-container {
+    background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 2rem; margin-bottom: 1.5rem; backdrop-filter: blur(8px);
+}
+.summary-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+.summary-actions { display: flex; gap: 0.5rem; }
+.action-btn {
+    background-color: rgba(148, 163, 184, 0.1); border: 1px solid var(--card-border); border-radius: 8px;
+    color: var(--text-muted); padding: 0.4rem 0.85rem; cursor: pointer; font-size: 0.8rem;
+    display: flex; align-items: center; gap: 0.4rem; transition: all 0.2s; font-family: 'Inter', sans-serif;
+}
+.action-btn:hover { background-color: rgba(148, 163, 184, 0.2); color: var(--text-light); }
+.summary-content { color: #cbd5e1; line-height: 1.8; font-size: 1.05rem; white-space: pre-wrap; border-left: 3px solid var(--highlight); padding-left: 1.25rem; }
+.key-points-list { list-style-type: none; display: grid; gap: 1rem; }
+.key-point { display: flex; align-items: flex-start; gap: 1rem; }
+.key-point-number {
+    background-color: var(--accent); color: white; min-width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8rem; margin-top: 2px;
+}
+.key-point-text { color: #cbd5e1; }
+.feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+.feature-card { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 1.75rem; transition: transform 0.2s, border-color 0.2s; }
+.feature-card:hover { transform: translateY(-3px); border-color: rgba(212, 165, 116, 0.4); }
+.feature-card i { color: var(--highlight); font-size: 1.4rem; margin-bottom: 0.75rem; display: block; }
+.feature-card h3 { font-size: 1.15rem; margin-bottom: 0.4rem; }
+.feature-card p { color: var(--text-muted); font-size: 0.9rem; }
+footer { text-align: center; padding: 2rem 0; border-top: 1px solid var(--card-border); margin-top: 2rem; }
+.footer-text { color: var(--text-muted); font-size: 0.8rem; }
+@media (max-width: 768px) {
+    .header-content { flex-direction: column; gap: 0.75rem; }
+    .hero-title { font-size: 2rem; }
+    .summary-options { grid-template-columns: 1fr; }
+    .summary-header { flex-direction: column; gap: 1rem; }
+    .feature-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+    <div class="container header-content">
+        <a class="logo" onclick="showPage('home')">
+            <div class="logo-icon"><i class="fas fa-feather-pointed"></i></div>
+            <div class="logo-text">Midnight Scholar</div>
+        </a>
+        <nav class="nav-links">
+            <a onclick="showPage('home')" data-nav="home" class="active">Home</a>
+            <a onclick="showPage('features')" data-nav="features">Features</a>
+            <a onclick="showPage('about')" data-nav="about">About</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+
+    <!-- HOME PAGE -->
+    <section class="page active" id="page-home">
+        <section class="hero-section">
+            <h1 class="hero-title">Distill Knowledge,<br><span>Not Noise.</span></h1>
+            <p class="hero-subtitle">Upload dense PDFs or scanned images and let AI extract the core insights and key points in seconds.</p>
+        </section>
+
+        <section class="upload-section">
+            <div class="file-upload-area" id="fileUploadArea">
+                <div class="upload-icon"><i class="fas fa-cloud-arrow-up"></i></div>
+                <p class="upload-text">Drop your document here or click to browse</p>
+                <p class="upload-hint">Supports PDF, JPG, and PNG (Max 10MB)</p>
+                <input type="file" class="file-input" id="fileInput" accept=".pdf,.jpg,.jpeg,.png">
+            </div>
+            <div class="file-info" id="fileInfo">
+                <div class="file-icon"><i class="fas fa-file-pdf" id="fileTypeIcon"></i></div>
+                <div class="file-details">
+                    <div class="file-name" id="fileName">document.pdf</div>
+                    <div class="file-size" id="fileSize">2.4 MB</div>
+                </div>
+                <button class="remove-file" id="removeFile"><i class="fas fa-xmark"></i></button>
+            </div>
+        </section>
+
+        <section class="options-section">
+            <h2 class="section-title"><i class="fas fa-sliders"></i> Summary Depth</h2>
+            <div class="summary-options">
+                <div class="option-card" data-length="short">
+                    <div class="option-icon"><i class="fas fa-compress"></i></div>
+                    <h3 class="option-title">Brief</h3>
+                    <p class="option-description">High-level overview. Best for quick skims.</p>
+                </div>
+                <div class="option-card selected" data-length="medium">
+                    <div class="option-icon"><i class="fas fa-scale-balanced"></i></div>
+                    <h3 class="option-title">Balanced</h3>
+                    <p class="option-description">Standard summary with main context intact.</p>
+                </div>
+                <div class="option-card" data-length="long">
+                    <div class="option-icon"><i class="fas fa-expand"></i></div>
+                    <h3 class="option-title">Detailed</h3>
+                    <p class="option-description">Comprehensive breakdown capturing nuances.</p>
+                </div>
+            </div>
+            <button class="generate-btn" id="generateBtn" disabled>
+                <i class="fas fa-wand-magic-sparkles"></i> Generate Summary
+            </button>
+        </section>
+
+        <div class="loading-container" id="loadingContainer">
+            <div class="loading-spinner"></div>
+            <p class="loading-text" id="loadingText">Initializing...</p>
+        </div>
+
+        <div class="error-container" id="errorContainer">
+            <div class="error-icon"><i class="fas fa-circle-exclamation"></i></div>
+            <div class="error-message">
+                <h3 class="error-title">Processing Failed</h3>
+                <p class="error-details" id="errorMessage">Something went wrong.</p>
+            </div>
+        </div>
+
+        <section class="results-section" id="resultsSection">
+            <div class="summary-container">
+                <div class="summary-header">
+                    <h2 class="summary-title">Summary</h2>
+                    <div class="summary-actions">
+                        <button class="action-btn" id="copySummary"><i class="fas fa-copy"></i> Copy</button>
+                        <button class="action-btn" id="downloadSummary"><i class="fas fa-download"></i> Save .txt</button>
+                    </div>
+                </div>
+                <div class="summary-content" id="summaryContent"></div>
+            </div>
+            <div class="key-points-container">
+                <h2 class="section-title"><i class="fas fa-list-check"></i> Key Takeaways</h2>
+                <ul class="key-points-list" id="keyPointsList"></ul>
+            </div>
+        </section>
+    </section>
+
+    <!-- FEATURES PAGE -->
+    <section class="page" id="page-features">
+        <h1 class="page-title"><i class="fas fa-sparkles" style="color:var(--highlight)"></i> Features</h1>
+        <p class="page-subtitle">Everything Midnight Scholar can do, all working end-to-end &mdash; not just a mockup.</p>
+        <div class="feature-grid">
+            <div class="feature-card"><i class="fas fa-file-arrow-up"></i><h3>Drag & Drop Upload</h3><p>Upload PDF, JPG, or PNG files up to 10MB using drag-and-drop or the file picker.</p></div>
+            <div class="feature-card"><i class="fas fa-file-lines"></i><h3>Real PDF Text Extraction</h3><p>PDFs are parsed right in the browser with PDF.js to pull the actual text content, page by page.</p></div>
+            <div class="feature-card"><i class="fas fa-eye"></i><h3>OCR for Scanned Images</h3><p>JPG/PNG uploads run through Tesseract.js OCR so scanned notes get converted to real text too.</p></div>
+            <div class="feature-card"><i class="fas fa-wand-magic-sparkles"></i><h3>Smart Summarization</h3><p>Extracted text is analyzed and condensed into a genuine summary, not a canned template.</p></div>
+            <div class="feature-card"><i class="fas fa-scale-balanced"></i><h3>Adjustable Depth</h3><p>Choose Brief, Balanced, or Detailed and the summary length actually changes.</p></div>
+            <div class="feature-card"><i class="fas fa-list-check"></i><h3>Key Takeaways</h3><p>A distinct list of key points is generated separately from the narrative summary.</p></div>
+            <div class="feature-card"><i class="fas fa-copy"></i><h3>Copy & Download</h3><p>Copy the summary to your clipboard or save it as a .txt file in one click.</p></div>
+            <div class="feature-card"><i class="fas fa-triangle-exclamation"></i><h3>Error Handling & Loading States</h3><p>Invalid files, oversized uploads, and failed extraction are caught and shown clearly, with a live loading indicator.</p></div>
+        </div>
+    </section>
+
+    <!-- ABOUT PAGE -->
+    <section class="page" id="page-about">
+        <h1 class="page-title"><i class="fas fa-feather-pointed" style="color:var(--highlight)"></i> About</h1>
+        <p class="page-subtitle" style="max-width:700px;">
+            Midnight Scholar is a tool built to cut through the noise of dense documents. Whether it's a
+            40-page PDF report or a scanned photo of notes, it extracts the core text and vital points so
+            you can read smarter, not harder.
+        </p>
+        <div class="feature-card" style="max-width:700px;">
+            <h3>How it works</h3>
+            <p style="margin-top:0.5rem;">
+                Everything runs directly in your browser &mdash; there is no server. PDFs are parsed for text
+                with PDF.js; images are run through Tesseract.js OCR. The extracted text is then analyzed and
+                condensed into a summary and key takeaways based on the depth you choose. No uploads ever
+                leave your device.
+            </p>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <div class="footer-text">&copy; 2026 Midnight Scholar. Built for efficient reading.</div>
+</footer>
+
+<!-- Libraries: PDF.js for PDF text extraction, Tesseract.js for OCR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ---------- Page navigation ----------
+function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === name));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ---------- DOM ----------
+const els = {
+    upload: document.getElementById('fileUploadArea'),
+    input: document.getElementById('fileInput'),
+    info: document.getElementById('fileInfo'),
+    name: document.getElementById('fileName'),
+    size: document.getElementById('fileSize'),
+    icon: document.getElementById('fileTypeIcon'),
+    remove: document.getElementById('removeFile'),
+    options: document.querySelectorAll('.option-card'),
+    generate: document.getElementById('generateBtn'),
+    loading: document.getElementById('loadingContainer'),
+    loadText: document.getElementById('loadingText'),
+    error: document.getElementById('errorContainer'),
+    errMsg: document.getElementById('errorMessage'),
+    results: document.getElementById('resultsSection'),
+    content: document.getElementById('summaryContent'),
+    points: document.getElementById('keyPointsList'),
+    copy: document.getElementById('copySummary'),
+    download: document.getElementById('downloadSummary')
+};
+
+let state = { file: null, length: 'medium' };
+
+els.upload.addEventListener('click', () => els.input.click());
+els.upload.addEventListener('dragover', e => { e.preventDefault(); els.upload.classList.add('dragover'); });
+els.upload.addEventListener('dragleave', () => els.upload.classList.remove('dragover'));
+els.upload.addEventListener('drop', e => {
+    e.preventDefault(); els.upload.classList.remove('dragover');
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+els.input.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
+els.remove.addEventListener('click', e => { e.stopPropagation(); resetUpload(); });
+els.options.forEach(c => c.addEventListener('click', () => {
+    els.options.forEach(x => x.classList.remove('selected'));
+    c.classList.add('selected');
+    state.length = c.dataset.length;
+}));
+els.generate.addEventListener('click', processDocument);
+
+els.copy.addEventListener('click', () => {
+    navigator.clipboard.writeText(els.content.innerText).then(() => {
+        els.copy.innerHTML = '<i class="fas fa-check"></i> Copied';
+        setTimeout(() => els.copy.innerHTML = '<i class="fas fa-copy"></i> Copy', 2000);
+    });
+});
+els.download.addEventListener('click', () => {
+    const blob = new Blob([els.content.innerText], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `summary-${state.file.name.replace(/\.[^/.]+$/, '')}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+});
+
+function formatBytes(b) {
+    if (b === 0) return '0 Bytes';
+    const k = 1024, s = ['Bytes', 'KB', 'MB'], i = Math.floor(Math.log(b) / Math.log(k));
+    return parseFloat((b / Math.pow(k, i)).toFixed(1)) + ' ' + s[i];
+}
+
+function handleFile(file) {
+    const valid = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (!valid.includes(file.type)) return showError('Invalid type. Please upload a PDF, JPG, or PNG.');
+    if (file.size > 10 * 1024 * 1024) return showError('File too large. Maximum size is 10MB.');
+    state.file = file;
+    els.name.textContent = file.name;
+    els.size.textContent = formatBytes(file.size);
+    els.icon.className = file.type === 'application/pdf' ? 'fas fa-file-pdf' : 'fas fa-file-image';
+    els.info.classList.add('active');
+    els.generate.disabled = false;
+    els.results.classList.remove('active');
+    els.error.classList.remove('active');
+}
+
+function resetUpload() {
+    state.file = null; els.input.value = ''; els.info.classList.remove('active');
+    els.generate.disabled = true; els.results.classList.remove('active'); els.error.classList.remove('active');
+}
+
+function showError(msg) {
+    els.errMsg.textContent = msg; els.error.classList.add('active'); els.results.classList.remove('active');
+}
+
+// ---------- Real text extraction ----------
+async function extractPdfText(file) {
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(it => it.str).join(' ') + '\n';
+    }
+    return text;
+}
+
+async function extractImageText(file) {
+    const { data } = await Tesseract.recognize(file, 'eng', {
+        logger: m => {
+            if (m.status === 'recognizing text') {
+                els.loadText.textContent = `Reading image (OCR)... ${Math.round(m.progress * 100)}%`;
+            }
+        }
+    });
+    return data.text;
+}
+
+// ---------- Real summarization (extractive, word-frequency based) ----------
+const LENGTH_CONFIG = { short: 3, medium: 5, long: 9 };
+const STOP = new Set(['the','a','an','and','or','but','of','to','in','on','for','is','are','was','were','it','this','that','with','as','be','by','at','from','which','has','have','had','not','can','will']);
+
+function summarizeText(text, length) {
+    const clean = text.replace(/\s+/g, ' ').trim();
+    const sentences = (clean.match(/[^.!?]+[.!?]+/g) || [clean]).filter(s => s.trim().split(/\s+/).length > 3);
+    const numSentences = LENGTH_CONFIG[length] || 5;
+
+    const freq = {};
+    clean.toLowerCase().split(/\W+/).forEach(w => {
+        if (w && !STOP.has(w)) freq[w] = (freq[w] || 0) + 1;
+    });
+
+    const scored = sentences.map((s, i) => {
+        const words = s.toLowerCase().split(/\W+/);
+        const score = words.reduce((sum, w) => sum + (freq[w] || 0), 0) / (words.length || 1);
+        return { s: s.trim(), i, score };
+    });
+
+    const ranked = [...scored].sort((a, b) => b.score - a.score);
+    const top = ranked.slice(0, numSentences).sort((a, b) => a.i - b.i);
+    const summary = top.map(t => t.s).join(' ');
+    const keyPoints = ranked.slice(0, 5).sort((a, b) => a.i - b.i).map(t => t.s);
+
+    return { summary: summary || 'Could not generate a summary from this document.', keyPoints };
+}
+
+// ---------- Main flow ----------
+async function processDocument() {
+    if (!state.file) return;
+    els.loading.classList.add('active');
+    els.results.classList.remove('active');
+    els.error.classList.remove('active');
+    els.generate.disabled = true;
+    els.loadText.textContent = 'Reading document...';
+
+    try {
+        let text;
+        if (state.file.type === 'application/pdf') {
+            text = await extractPdfText(state.file);
+        } else {
+            text = await extractImageText(state.file);
+        }
+
+        if (!text || text.trim().length < 20) {
+            throw new Error('Could not extract readable text from this file. Try a clearer scan or a text-based PDF.');
+        }
+
+        els.loadText.textContent = 'Summarizing...';
+        await new Promise(r => setTimeout(r, 300)); // let the UI update
+        const result = summarizeText(text, state.length);
+        displayResults(result);
+    } catch (err) {
+        console.error(err);
+        showError(err.message || 'Something went wrong while processing the document.');
+    } finally {
+        els.loading.classList.remove('active');
+        els.generate.disabled = false;
+    }
+}
+
+function displayResults(data) {
+    els.content.textContent = data.summary;
+    els.points.innerHTML = '';
+    if (data.keyPoints && data.keyPoints.length > 0) {
+        data.keyPoints.forEach((point, i) => {
+            const li = document.createElement('li');
+            li.className = 'key-point';
+            li.innerHTML = `<div class="key-point-number">${i + 1}</div><div class="key-point-text"></div>`;
+            li.querySelector('.key-point-text').textContent = point;
+            els.points.appendChild(li);
+        });
+    } else {
+        els.points.innerHTML = '<li style="color: var(--text-muted)">No specific key points extracted.</li>';
+    }
+    els.results.classList.add('active');
+    els.results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

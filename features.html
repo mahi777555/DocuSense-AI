@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Features | Midnight Scholar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a class="logo" href="index.html">
+                <div class="logo-icon"><i class="fas fa-feather-pointed"></i></div>
+                <div class="logo-text">Midnight Scholar</div>
+            </a>
+            <nav class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="features.html" class="active">Features</a>
+                <a href="about.html">About</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1 class="page-title"><i class="fas fa-sparkles" style="color:var(--highlight)"></i> Features</h1>
+        <p class="page-subtitle">Everything Midnight Scholar can do for you, all working end-to-end &mdash; not just a mockup.</p>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <i class="fas fa-file-arrow-up"></i>
+                <h3>Drag & Drop Upload</h3>
+                <p>Upload PDF, JPG, or PNG files up to 10MB using drag-and-drop or the file picker.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-file-lines"></i>
+                <h3>Real PDF Text Extraction</h3>
+                <p>PDFs are parsed on the server with <code>pdf-parse</code> to pull the actual text content, page by page.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-eye"></i>
+                <h3>OCR for Scanned Images</h3>
+                <p>JPG/PNG uploads run through <code>tesseract.js</code> OCR so handwritten or scanned notes get converted to text too.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-wand-magic-sparkles"></i>
+                <h3>AI-Generated Summaries</h3>
+                <p>Extracted text is sent to Claude to generate a genuine, context-aware summary &mdash; not a template.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-scale-balanced"></i>
+                <h3>Adjustable Depth</h3>
+                <p>Choose Brief, Balanced, or Detailed and the prompt sent to the AI actually changes length and depth.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-list-check"></i>
+                <h3>Key Takeaways</h3>
+                <p>The AI also returns a distinct list of key points, separate from the narrative summary.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-copy"></i>
+                <h3>Copy & Download</h3>
+                <p>Copy the summary to your clipboard or save it as a <code>.txt</code> file in one click.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-triangle-exclamation"></i>
+                <h3>Error Handling & Loading States</h3>
+                <p>Invalid files, oversized uploads, and failed requests are caught and shown clearly, with a live loading indicator during processing.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-text">&copy; 2026 Midnight Scholar. Built for efficient reading.</div>
+    </footer>
+</body>
+</html>

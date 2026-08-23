@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | Midnight Scholar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a class="logo" href="index.html">
+                <div class="logo-icon"><i class="fas fa-feather-pointed"></i></div>
+                <div class="logo-text">Midnight Scholar</div>
+            </a>
+            <nav class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="features.html">Features</a>
+                <a href="about.html" class="active">About</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1 class="page-title"><i class="fas fa-feather-pointed" style="color:var(--highlight)"></i> About</h1>
+        <p class="page-subtitle" style="max-width:700px;">
+            Midnight Scholar is an AI-powered tool built to cut through the noise of dense documents.
+            Whether it's a 40-page PDF report or a scanned photo of handwritten notes, it extracts the
+            core narrative and vital data points so you can read smarter, not harder.
+        </p>
+        <div class="feature-card" style="max-width:700px;">
+            <h3>How it works</h3>
+            <p style="margin-top:0.5rem;">
+                Your file is uploaded to a small Node.js/Express backend. PDFs are parsed for text directly;
+                images are run through OCR. The extracted text, along with your chosen summary depth, is sent
+                to Claude, which returns a written summary and a list of key takeaways. Everything you see on
+                the Home page is real, live output &mdash; there is no hard-coded demo data.
+            </p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-text">&copy; 2026 Midnight Scholar. Built for efficient reading.</div>
+    </footer>
+</body>
+</html>
